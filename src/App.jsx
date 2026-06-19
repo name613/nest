@@ -122,6 +122,7 @@ export default function App() {
             onLogout={handleLogout}
             onOpenPost={openPost}
             onOpenCollection={id => { setCollectionId(id); setPage('collection') }}
+            onEditPost={handleEdit}
           />
         )}
         {page === 'collection' && collectionId && (

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react'
-import { MEMBERS, getFavorites, getMember, updateMemberSignature, getCollections, canAddToCollection } from '../api/supabase.js'
+import { MEMBERS, getFavorites, getMember, updateMemberSignature,
+         getCollections, getMyPosts } from '../api/supabase.js'
 import PostCard from '../components/PostCard.jsx'
 
-export default function Profile({ memberId, onLogout, onOpenPost, onOpenCollection }) {
-  const [tab, setTab] = useState('favorites')
+export default function Profile({ memberId, onLogout, onOpenPost, onOpenCollection, onEditPost }) {
+  const [tab, setTab] = useState('posts')
+  const [myPosts, setMyPosts] = useState([])
   const [favs, setFavs] = useState([])
   const [collections, setCollections] = useState([])
   const [loading, setLoading] = useState(false)
@@ -22,11 +24,14 @@ export default function Profile({ memberId, onLogout, onOpenPost, onOpenCollecti
   }, [memberId])
 
   useEffect(() => {
-    if (tab === 'favorites') {
-      setLoading(true)
+    setLoading(true)
+    if (tab === 'posts') {
+      getMyPosts(memberId).then(setMyPosts).finally(() => setLoading(false))
+    } else if (tab === 'drafts') {
+      getMyPosts(memberId).then(all => setMyPosts(all.filter(p => p.is_draft))).finally(() => setLoading(false))
+    } else if (tab === 'favorites') {
       getFavorites(memberId).then(setFavs).finally(() => setLoading(false))
     } else {
-      setLoading(true)
       getCollections().then(setCollections).finally(() => setLoading(false))
     }
   }, [tab, memberId])
@@ -56,6 +61,9 @@ export default function Profile({ memberId, onLogout, onOpenPost, onOpenCollecti
       setCreatingColl(false)
     }
   }
+
+  const published = myPosts.filter(p => !p.is_draft)
+  const drafts = myPosts.filter(p => p.is_draft)
 
   return (
     <>
@@ -87,14 +95,39 @@ export default function Profile({ memberId, onLogout, onOpenPost, onOpenCollecti
         </div>
 
         <div className="profile-tabs">
+          <button className={`profile-tab ${tab === 'posts' ? 'active' : ''}`} onClick={() => setTab('posts')}>
+            帖子{published.length > 0 ? ` · ${published.length}` : ''}
+          </button>
+          <button className={`profile-tab ${tab === 'drafts' ? 'active' : ''}`} onClick={() => setTab('drafts')}>
+            草稿{drafts.length > 0 ? ` · ${drafts.length}` : ''}
+          </button>
           <button className={`profile-tab ${tab === 'favorites' ? 'active' : ''}`} onClick={() => setTab('favorites')}>收藏</button>
           <button className={`profile-tab ${tab === 'collections' ? 'active' : ''}`} onClick={() => setTab('collections')}>合集</button>
         </div>
 
+        {(tab === 'posts' || tab === 'drafts') && (
+          loading ? <div className="loading-state">加载中…</div>
+          : (tab === 'posts' ? published : drafts).length === 0
+            ? <div className="empty-state" style={{ padding: '24px 0' }}>
+                <div>{tab === 'drafts' ? '没有草稿' : '还没有发帖'}</div>
+              </div>
+            : (tab === 'posts' ? published : drafts).map(p => (
+                <div key={p.id} style={{ position: 'relative' }}>
+                  <PostCard post={p} onClick={() => onOpenPost(p.id)} />
+                  {p.is_draft && onEditPost && (
+                    <button className="draft-edit-btn" onClick={e => { e.stopPropagation(); onEditPost(p) }}>
+                      继续编辑
+                    </button>
+                  )}
+                </div>
+              ))
+        )}
+
         {tab === 'favorites' && (
           loading ? <div className="loading-state">加载中…</div>
-          : favs.length === 0 ? <div className="empty-state" style={{ padding: '24px 0' }}><div>还没有收藏</div></div>
-          : favs.map(p => <PostCard key={p.id} post={p} onClick={() => onOpenPost(p.id)} />)
+          : favs.length === 0
+            ? <div className="empty-state" style={{ padding: '24px 0' }}><div>还没有收藏</div></div>
+            : favs.map(p => <PostCard key={p.id} post={p} onClick={() => onOpenPost(p.id)} />)
         )}
 
         {tab === 'collections' && (
@@ -104,7 +137,6 @@ export default function Profile({ memberId, onLogout, onOpenPost, onOpenCollecti
                 {showCreateColl ? '取消' : '＋ 创建合集'}
               </button>
             </div>
-
             {showCreateColl && (
               <div className="create-coll-form">
                 <input className="form-input" placeholder="合集名称" value={newCollTitle}
@@ -116,19 +148,20 @@ export default function Profile({ memberId, onLogout, onOpenPost, onOpenCollecti
                 </button>
               </div>
             )}
-
             {loading ? <div className="loading-state">加载中…</div>
-            : collections.length === 0 ? <div className="empty-state" style={{ padding: '24px 0' }}><div>还没有合集</div></div>
-            : collections.map(c => (
-              <button key={c.id} className="collection-card" onClick={() => onOpenCollection(c.id)}>
-                <div className="collection-card-title">{c.title}</div>
-                {c.description && <div className="collection-card-desc">{c.description}</div>}
-                <div className="collection-card-meta">
-                  <span data-member={c.author_id}>{MEMBERS[c.author_id]?.avatar} {MEMBERS[c.author_id]?.name}</span>
-                  <span>{c.post_count?.[0]?.count ?? 0} 篇</span>
-                </div>
-              </button>
-            ))}
+            : collections.length === 0
+              ? <div className="empty-state" style={{ padding: '24px 0' }}><div>还没有合集</div></div>
+              : collections.map(c => (
+                <button key={c.id} className="collection-card" onClick={() => onOpenCollection(c.id)}>
+                  <div className="collection-card-title">{c.title}</div>
+                  {c.description && <div className="collection-card-desc">{c.description}</div>}
+                  <div className="collection-card-meta">
+                    <span data-member={c.author_id}>{MEMBERS[c.author_id]?.avatar} {MEMBERS[c.author_id]?.name}</span>
+                    <span>{c.post_count?.[0]?.count ?? 0} 篇</span>
+                  </div>
+                </button>
+              ))
+            }
           </>
         )}
 

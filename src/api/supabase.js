@@ -165,6 +165,14 @@ export async function sendMessage(channel, authorId, content) {
   return data
 }
 
+export async function getMyPosts(memberId) {
+  const { data, error } = await _client.rpc('get_visible_posts', {
+    p_member_id: memberId, p_post_id: null, p_include_drafts: true,
+  })
+  if (error) throw error
+  return (data ?? []).filter(p => p.author_id === memberId)
+}
+
 export async function getReadMap(memberId) {
   const { data } = await _client.from('forum_post_reads')
     .select('post_id, read_at').eq('member_id', memberId)

@@ -885,6 +885,22 @@ body {
 .fab:hover { transform: scale(1.06); box-shadow: 0 6px 18px rgba(154, 107, 60, 0.5) }
 
 /* ── Profile tabs ── */
+.draft-edit-btn {
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  background: var(--accent);
+  color: #fdfaf6;
+  border: none;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 11px;
+  padding: 4px 10px;
+  cursor: pointer;
+  opacity: 0.85;
+}
+.draft-edit-btn:hover { opacity: 1 }
+
 .profile-tabs {
   display: flex;
   gap: 0;
