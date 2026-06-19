@@ -1,0 +1,13 @@
+{
+  "name": "nest",
+  "short_name": "nest",
+  "description": "bunny · 可可 · 柒柒",
+  "start_url": "/nest/",
+  "display": "standalone",
+  "background_color": "#f4efe8",
+  "theme_color": "#9a6b3c",
+  "icons": [
+    { "src": "/nest/icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "/nest/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
