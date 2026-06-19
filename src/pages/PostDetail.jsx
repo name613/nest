@@ -4,7 +4,7 @@ import {
   getPostWithDetails, addComment, toggleReaction,
   toggleFavorite, getCollections, getPostCollectionIds,
   addPostToCollection, removePostFromCollection, createCollection,
-  canAddToCollection, MEMBERS
+  canAddToCollection, markPostRead, MEMBERS
 } from '../api/supabase.js'
 import AuthorTag from '../components/AuthorTag.jsx'
 
@@ -31,6 +31,7 @@ export default function PostDetail({ postId, memberId, onBack, onEdit }) {
     try {
       const d = await getPostWithDetails(postId, memberId)
       setData(d)
+      markPostRead(postId, memberId).catch(() => {})
     } finally {
       setLoading(false)
     }
@@ -185,7 +186,8 @@ export default function PostDetail({ postId, memberId, onBack, onEdit }) {
             comments.map(c => (
               <div key={c.id} className="comment-item">
                 <AuthorTag authorId={c.author?.id ?? c.author_id} time={c.created_at} sig={false} />
-                <div className="comment-body">{c.content}</div>
+                <div className="comment-body post-body"
+                  dangerouslySetInnerHTML={{ __html: marked.parse(c.content) }} />
               </div>
             ))
           )}

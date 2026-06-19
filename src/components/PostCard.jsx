@@ -1,12 +1,12 @@
 import React from 'react'
 import AuthorTag from './AuthorTag.jsx'
-import { MEMBERS } from '../api/supabase.js'
 
-export default function PostCard({ post, onClick }) {
+export default function PostCard({ post, isUnread, onClick }) {
   const preview = post.content.replace(/[#*`>]/g, '').trim().slice(0, 80)
 
   return (
     <div className="post-card" data-author={post.author_id} onClick={onClick}>
+      {isUnread && <span className="unread-dot" />}
       <AuthorTag authorId={post.author_id} time={post.created_at} sig={false} />
       <div className="post-card-title">{post.title}</div>
       {preview && <div className="post-card-preview">{preview}</div>}

@@ -185,6 +185,16 @@ body {
   transition: box-shadow 0.15s;
 }
 .post-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.07) }
+.post-card { position: relative }
+.unread-dot {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+}
 .post-card[data-author="bunny"] { border-left-color: var(--bunny) }
 .post-card[data-author="keke"]  { border-left-color: var(--keke) }
 .post-card[data-author="qiqi"]  { border-left-color: var(--qiqi) }
@@ -713,6 +723,80 @@ body {
   min-width: 16px;
   text-align: center;
 }
+
+/* ── View toggle ── */
+.view-toggle {
+  display: flex;
+  gap: 2px;
+  background: var(--surface-2);
+  border-radius: 6px;
+  padding: 2px;
+}
+.view-btn {
+  padding: 4px 10px;
+  border: none;
+  background: none;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 11px;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.view-btn.active { background: var(--surface); color: var(--accent); font-weight: 500 }
+
+/* ── Timeline ── */
+.timeline-list { padding: 12px 12px 0 }
+.tl-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left-width: 3px;
+  border-radius: 6px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: box-shadow 0.15s;
+  position: relative;
+}
+.tl-item:hover { box-shadow: 0 2px 10px rgba(0,0,0,0.07) }
+.tl-post[data-author="bunny"] { border-left-color: var(--bunny) }
+.tl-post[data-author="keke"]  { border-left-color: var(--keke) }
+.tl-post[data-author="qiqi"]  { border-left-color: var(--qiqi) }
+.tl-comment { border-left-color: var(--border) }
+.tl-unread::after {
+  content: '';
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.tl-type-label {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--text-2);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.tl-post-title { font-size: 14px; font-weight: 500; color: var(--text); margin: 6px 0 4px }
+.tl-post-preview { font-size: 12px; color: var(--text-2); line-height: 1.5 }
+.tl-comment-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+.tl-comment-av { font-size: 16px }
+.tl-comment-name { font-size: 12px; font-weight: 500 }
+.tl-comment-name[data-member="bunny"] { color: var(--bunny) }
+.tl-comment-name[data-member="keke"]  { color: var(--keke) }
+.tl-comment-name[data-member="qiqi"]  { color: var(--qiqi) }
+.tl-comment-on { font-size: 12px; color: var(--text-2) }
+.tl-comment-time { font-size: 11px; color: var(--text-2); margin-left: auto }
+.tl-comment-preview { font-size: 12px; color: var(--text-2); line-height: 1.6; padding-left: 22px }
 
 /* ── Empty / Loading ── */
 .empty-state, .loading-state {

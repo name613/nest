@@ -165,6 +165,38 @@ export async function sendMessage(channel, authorId, content) {
   return data
 }
 
+export async function getReadMap(memberId) {
+  const { data } = await _client.from('forum_post_reads')
+    .select('post_id, read_at').eq('member_id', memberId)
+  const map = new Map()
+  for (const r of data ?? []) map.set(r.post_id, r.read_at)
+  return map
+}
+
+export async function markPostRead(postId, memberId) {
+  await _client.from('forum_post_reads')
+    .upsert({ member_id: memberId, post_id: postId, read_at: new Date().toISOString() },
+             { onConflict: 'member_id,post_id' })
+}
+
+export async function getTimeline(memberId, limit = 60) {
+  const [postsRes, commentsRes] = await Promise.all([
+    _client.rpc('get_visible_posts', { p_member_id: memberId, p_post_id: null, p_include_drafts: false }),
+    _client.from('forum_comments')
+      .select('id, post_id, author_id, content, created_at, post:forum_posts!post_id(id, title)')
+      .order('created_at', { ascending: false })
+      .limit(limit)
+  ])
+  const visibleIds = new Set((postsRes.data ?? []).map(p => p.id))
+  const posts = (postsRes.data ?? []).map(p => ({ ...p, _type: 'post', _time: p.created_at }))
+  const comments = (commentsRes.data ?? [])
+    .filter(c => visibleIds.has(c.post_id))
+    .map(c => ({ ...c, _type: 'comment', _time: c.created_at }))
+  return [...posts, ...comments]
+    .sort((a, b) => new Date(b._time) - new Date(a._time))
+    .slice(0, limit)
+}
+
 export async function getCollections() {
   const { data, error } = await _client.from('forum_collections')
     .select('*, post_count:forum_collection_posts(count)')
