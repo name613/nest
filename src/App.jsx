@@ -6,12 +6,14 @@ import PostDetail from './pages/PostDetail.jsx'
 import Compose from './pages/Compose.jsx'
 import Notifications from './pages/Notifications.jsx'
 import Profile from './pages/Profile.jsx'
+import ChatRoom from './pages/ChatRoom.jsx'
 import NavBar from './components/NavBar.jsx'
 
 export default function App() {
   const [session, setSession] = useState(null)
   const [page, setPage] = useState('feed')
   const [postId, setPostId] = useState(null)
+  const [editPost, setEditPost] = useState(null)
   const [unread, setUnread] = useState(0)
 
   // Restore session from localStorage
@@ -52,6 +54,23 @@ export default function App() {
     setPage('post')
   }
 
+  function handleEdit(post) {
+    setEditPost(post)
+    setPage('compose')
+  }
+
+  function handleComposeDone() {
+    const wasEditing = !!editPost
+    setEditPost(null)
+    setPage(wasEditing ? 'post' : 'feed')
+  }
+
+  function handleComposeCancel() {
+    const wasEditing = !!editPost
+    setEditPost(null)
+    setPage(wasEditing ? 'post' : 'feed')
+  }
+
   function handleNav(tab) {
     setPage(tab)
     if (tab !== 'post') setPostId(null)
@@ -69,7 +88,7 @@ export default function App() {
           <Feed
             memberId={memberId}
             onOpenPost={openPost}
-            onCompose={() => setPage('compose')}
+            onCompose={() => { setEditPost(null); setPage('compose') }}
           />
         )}
         {page === 'post' && postId && (
@@ -77,15 +96,18 @@ export default function App() {
             postId={postId}
             memberId={memberId}
             onBack={() => { setPage('feed'); setPostId(null) }}
+            onEdit={handleEdit}
           />
         )}
         {page === 'compose' && (
           <Compose
             memberId={memberId}
-            onDone={() => setPage('feed')}
-            onCancel={() => setPage('feed')}
+            editPost={editPost}
+            onDone={handleComposeDone}
+            onCancel={handleComposeCancel}
           />
         )}
+        {page === 'chat' && <ChatRoom memberId={memberId} />}
         {page === 'notifications' && (
           <Notifications
             memberId={memberId}

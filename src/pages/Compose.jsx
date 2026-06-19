@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { createPost, CATEGORIES, MEMBERS } from '../api/supabase.js'
+import { createPost, updatePost, CATEGORIES, MEMBERS } from '../api/supabase.js'
 
 const VISIBLE_OPTS = [
   { label: '所有人', value: 'all', desc: '三个人都能看' },
@@ -9,13 +9,21 @@ const VISIBLE_OPTS = [
   { label: '只有我', value: 'self', desc: '只有自己可见' },
 ]
 
-export default function Compose({ memberId, onDone, onCancel }) {
-  const [title, setTitle] = useState('')
-  const [content, setContent] = useState('')
-  const [category, setCategory] = useState(CATEGORIES[0])
-  const [tags, setTags] = useState('')
-  const [visible, setVisible] = useState('all')
-  const [isDraft, setIsDraft] = useState(false)
+function visibleToValue(visibleTo, memberId) {
+  if (!visibleTo || visibleTo.includes('all')) return 'all'
+  if (visibleTo.length === 1) return 'self'
+  return [...visibleTo].sort().join(',')
+}
+
+export default function Compose({ memberId, editPost, onDone, onCancel }) {
+  const isEditing = !!editPost
+  const [title, setTitle] = useState(editPost?.title ?? '')
+  const [content, setContent] = useState(editPost?.content ?? '')
+  const [category, setCategory] = useState(editPost?.category ?? CATEGORIES[0])
+  const [tags, setTags] = useState(editPost?.tags?.join(', ') ?? '')
+  const [visible, setVisible] = useState(
+    isEditing ? visibleToValue(editPost.visible_to, memberId) : 'all'
+  )
   const [submitting, setSubmitting] = useState(false)
   const [err, setErr] = useState('')
 
@@ -33,15 +41,19 @@ export default function Compose({ memberId, onDone, onCancel }) {
     setSubmitting(true)
     setErr('')
     try {
-      await createPost({
-        author_id: memberId,
+      const payload = {
         title: title.trim(),
         content: content.trim(),
         category,
         tags: tags.split(/[,，\s]+/).map(t => t.trim()).filter(Boolean),
         visible_to: buildVisibleTo(),
         is_draft: asDraft,
-      })
+      }
+      if (isEditing) {
+        await updatePost(editPost.id, payload)
+      } else {
+        await createPost({ author_id: memberId, ...payload })
+      }
       onDone()
     } catch (e) {
       setErr(e.message)
@@ -54,7 +66,7 @@ export default function Compose({ memberId, onDone, onCancel }) {
     <>
       <div className="page-header">
         <button className="back-btn" onClick={onCancel}>←</button>
-        <span className="page-header-title">发帖</span>
+        <span className="page-header-title">{isEditing ? '编辑帖子' : '发帖'}</span>
       </div>
 
       <div className="compose-page">
@@ -119,11 +131,13 @@ export default function Compose({ memberId, onDone, onCancel }) {
         {err && <div className="login-err" style={{ marginBottom: 12 }}>{err}</div>}
 
         <div className="compose-actions">
-          <button className="btn-outline" onClick={() => handleSubmit(true)} disabled={submitting}>
-            存草稿
-          </button>
+          {!isEditing && (
+            <button className="btn-outline" onClick={() => handleSubmit(true)} disabled={submitting}>
+              存草稿
+            </button>
+          )}
           <button className="btn-submit" onClick={() => handleSubmit(false)} disabled={submitting}>
-            {submitting ? '发布中…' : '发布'}
+            {submitting ? (isEditing ? '保存中…' : '发布中…') : (isEditing ? '保存' : '发布')}
           </button>
         </div>
       </div>

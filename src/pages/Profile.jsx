@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from 'react'
-import { MEMBERS, getFavorites } from '../api/supabase.js'
+import { MEMBERS, getFavorites, getMember, updateMemberSignature } from '../api/supabase.js'
 import PostCard from '../components/PostCard.jsx'
 
 export default function Profile({ memberId, onLogout, onOpenPost }) {
-  const [tab, setTab] = useState('favorites')
   const [favs, setFavs] = useState([])
   const [loading, setLoading] = useState(false)
+  const [sig, setSig] = useState('')
+  const [editingSig, setEditingSig] = useState(false)
+  const [sigInput, setSigInput] = useState('')
+  const [savingSig, setSavingSig] = useState(false)
   const m = MEMBERS[memberId] ?? { id: memberId, name: memberId, avatar: '👤' }
 
   useEffect(() => {
-    if (tab === 'favorites') loadFavs()
-  }, [tab, memberId])
+    loadFavs()
+    getMember(memberId).then(d => setSig(d.signature ?? '')).catch(() => {})
+  }, [memberId])
 
   async function loadFavs() {
     setLoading(true)
@@ -18,6 +22,17 @@ export default function Profile({ memberId, onLogout, onOpenPost }) {
       setFavs(await getFavorites(memberId))
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function saveSig() {
+    setSavingSig(true)
+    try {
+      await updateMemberSignature(memberId, sigInput.trim())
+      setSig(sigInput.trim())
+      setEditingSig(false)
+    } finally {
+      setSavingSig(false)
     }
   }
 
@@ -31,7 +46,32 @@ export default function Profile({ memberId, onLogout, onOpenPost }) {
         <div className="profile-card">
           <div className="profile-av">{m.avatar}</div>
           <div className="profile-name" data-member={m.id}>{m.name}</div>
-          {m.id === 'keke' && <div className="profile-sig">终端侧</div>}
+
+          {editingSig ? (
+            <div className="sig-edit-row">
+              <input
+                className="sig-input"
+                value={sigInput}
+                onChange={e => setSigInput(e.target.value)}
+                placeholder="写个签名…"
+                maxLength={40}
+                autoFocus
+              />
+              <div className="sig-edit-btns">
+                <button className="sig-btn-save" onClick={saveSig} disabled={savingSig}>
+                  {savingSig ? '…' : '保存'}
+                </button>
+                <button className="sig-btn-cancel" onClick={() => setEditingSig(false)}>取消</button>
+              </div>
+            </div>
+          ) : (
+            <div className="sig-display-row">
+              <div className="profile-sig">{sig || '还没有签名'}</div>
+              <button className="sig-edit-trigger" onClick={() => { setSigInput(sig); setEditingSig(true) }}>
+                编辑
+              </button>
+            </div>
+          )}
         </div>
 
         <div style={{ marginBottom: 16 }}>

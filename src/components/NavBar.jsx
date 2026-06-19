@@ -2,7 +2,7 @@ import React from 'react'
 
 const TABS = [
   { id: 'feed',          icon: '🪺', label: '首页' },
-  { id: 'compose',       icon: '✏️',  label: '发帖' },
+  { id: 'chat',          icon: '💬', label: '聊天室' },
   { id: 'notifications', icon: '🔔', label: '通知' },
   { id: 'profile',       icon: '◎',  label: '我的' },
 ]

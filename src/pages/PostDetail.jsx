@@ -10,7 +10,7 @@ const REACTION_EMOJIS = ['❤️', '🌟', '😄', '😢', '👏', '🌙']
 
 marked.setOptions({ breaks: true, gfm: true })
 
-export default function PostDetail({ postId, memberId, onBack }) {
+export default function PostDetail({ postId, memberId, onBack, onEdit }) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [comment, setComment] = useState('')
@@ -68,6 +68,9 @@ export default function PostDetail({ postId, memberId, onBack }) {
       <div className="page-header">
         <button className="back-btn" onClick={onBack}>←</button>
         <span className="page-header-title">{post.category}</span>
+        {post.author_id === memberId && onEdit && (
+          <button className="edit-post-btn" onClick={() => onEdit(post)}>编辑</button>
+        )}
       </div>
 
       <div className="post-detail">

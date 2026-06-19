@@ -127,3 +127,33 @@ export async function getFavorites(memberId) {
   if (error) throw error
   return data?.map(r => r.post) ?? []
 }
+
+export async function getMessages(channel, limit = 80) {
+  const { data, error } = await _client.from('forum_messages')
+    .select('*, author:forum_members!author_id(id, name, avatar)')
+    .eq('channel', channel)
+    .order('created_at', { ascending: true })
+    .limit(limit)
+  if (error) throw error
+  return data ?? []
+}
+
+export async function sendMessage(channel, authorId, content) {
+  const { data, error } = await _client.from('forum_messages')
+    .insert({ channel, author_id: authorId, content })
+    .select('*, author:forum_members!author_id(id, name, avatar)')
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function getMember(memberId) {
+  const { data, error } = await _client.from('forum_members').select('*').eq('id', memberId).single()
+  if (error) throw error
+  return data
+}
+
+export async function updateMemberSignature(memberId, signature) {
+  const { error } = await _client.from('forum_members').update({ signature }).eq('id', memberId)
+  if (error) throw error
+}
