@@ -2,7 +2,7 @@ import React from 'react'
 import AuthorTag from './AuthorTag.jsx'
 
 export default function PostCard({ post, isUnread, onClick }) {
-  const preview = post.content.replace(/[#*`>]/g, '').trim().slice(0, 80)
+  const preview = (post.content ?? '').replace(/[#*`>]/g, '').trim().slice(0, 80)
 
   return (
     <div className="post-card" data-author={post.author_id} onClick={onClick}>

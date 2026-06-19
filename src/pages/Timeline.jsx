@@ -32,7 +32,7 @@ export default function Timeline({ memberId, readMap, onOpenPost }) {
         if (item._type === 'post') {
           const isUnread = !readMap.has(item.id) ||
             new Date(item.updated_at) > new Date(readMap.get(item.id))
-          const preview = item.content.replace(/[#*`>]/g, '').trim().slice(0, 60)
+          const preview = (item.content ?? '').replace(/[#*`>]/g, '').trim().slice(0, 60)
           return (
             <div key={`p-${item.id}`} className={`tl-item tl-post ${isUnread ? 'tl-unread' : ''}`}
               data-author={item.author_id} onClick={() => onOpenPost(item.id)}>
@@ -44,7 +44,7 @@ export default function Timeline({ memberId, readMap, onOpenPost }) {
           )
         } else {
           const m = MEMBERS[item.author_id] ?? { avatar: '👤', name: item.author_id, id: item.author_id }
-          const preview = item.content.replace(/[#*`>]/g, '').trim().slice(0, 60)
+          const preview = (item.content ?? '').replace(/[#*`>]/g, '').trim().slice(0, 60)
           return (
             <div key={`c-${item.id}`} className="tl-item tl-comment"
               onClick={() => onOpenPost(item.post_id)}>
@@ -55,7 +55,7 @@ export default function Timeline({ memberId, readMap, onOpenPost }) {
                 <span className="tl-comment-on">评论了《{item.post?.title}》</span>
                 <span className="tl-comment-time">{timeAgo(item.created_at)}</span>
               </div>
-              <div className="tl-comment-preview">{preview}{item.content.length > 60 ? '…' : ''}</div>
+              <div className="tl-comment-preview">{preview}{(item.content ?? '').length > 60 ? '…' : ''}</div>
             </div>
           )
         }

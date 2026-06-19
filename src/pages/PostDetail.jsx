@@ -197,8 +197,8 @@ export default function PostDetail({ postId, memberId, onBack, onEdit }) {
                       {MEMBERS[c.parent.author_id]?.name ?? c.parent.author_id}
                     </span>
                     <span className="comment-quote-text">
-                      {c.parent.content.replace(/[#*`>]/g, '').slice(0, 60)}
-                      {c.parent.content.length > 60 ? '…' : ''}
+                      {(c.parent.content ?? '').replace(/[#*`>]/g, '').slice(0, 60)}
+                      {(c.parent.content ?? '').length > 60 ? '…' : ''}
                     </span>
                   </div>
                 )}
