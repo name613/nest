@@ -412,12 +412,67 @@ body {
   padding-left: 32px;
 }
 
+.comment-reply-btn {
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 11px;
+  color: var(--text-2);
+  cursor: pointer;
+  padding: 2px 0 0 32px;
+  opacity: 0.6;
+  transition: opacity 0.15s;
+}
+.comment-reply-btn:hover { opacity: 1 }
+
+.comment-quote {
+  margin: 4px 0 8px 32px;
+  padding: 6px 10px;
+  border-left: 2px solid var(--border);
+  border-radius: 0 4px 4px 0;
+  background: var(--surface-2);
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+.comment-quote-name {
+  font-size: 11px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+.comment-quote-name[data-member="bunny"] { color: var(--bunny) }
+.comment-quote-name[data-member="keke"]  { color: var(--keke) }
+.comment-quote-name[data-member="qiqi"]  { color: var(--qiqi) }
+.comment-quote-text { font-size: 11px; color: var(--text-2); line-height: 1.5 }
+
 .comment-input-area {
   position: sticky;
   bottom: calc(var(--nav-h) + var(--safe-bottom));
   background: var(--surface);
   border-top: 1px solid var(--border);
-  padding: 10px 16px;
+  padding: 8px 16px 10px;
+}
+.reply-preview {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  background: var(--surface-2);
+  border-radius: 6px;
+  margin-bottom: 6px;
+  font-size: 11px;
+}
+.reply-preview-name { font-weight: 500; flex-shrink: 0 }
+.reply-preview-name[data-member="bunny"] { color: var(--bunny) }
+.reply-preview-name[data-member="keke"]  { color: var(--keke) }
+.reply-preview-name[data-member="qiqi"]  { color: var(--qiqi) }
+.reply-preview-text { color: var(--text-2); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.reply-cancel-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--text-2); font-size: 12px; flex-shrink: 0; padding: 0 2px;
+}
+.comment-input-row {
   display: flex;
   gap: 8px;
   align-items: flex-end;

@@ -33,7 +33,7 @@ export async function getPostWithDetails(postId, memberId) {
   const [postRes, commentsRes, reactionsRes, favRes] = await Promise.all([
     _client.rpc('get_visible_posts', { p_member_id: memberId, p_post_id: postId }),
     _client.from('forum_comments')
-      .select('*, author:forum_members!author_id(id, name, avatar)')
+      .select('*, author:forum_members!author_id(id, name, avatar), parent:forum_comments!parent_comment_id(id, content, author_id)')
       .eq('post_id', postId)
       .order('created_at'),
     _client.from('forum_reactions').select('*').eq('post_id', postId),
@@ -64,10 +64,10 @@ export async function deletePost(id) {
   if (error) throw error
 }
 
-export async function addComment(postId, authorId, content) {
+export async function addComment(postId, authorId, content, parentCommentId = null) {
   const { data, error } = await _client.from('forum_comments')
-    .insert({ post_id: postId, author_id: authorId, content })
-    .select('*, author:forum_members!author_id(id, name, avatar)')
+    .insert({ post_id: postId, author_id: authorId, content, parent_comment_id: parentCommentId || null })
+    .select('*, author:forum_members!author_id(id, name, avatar), parent:forum_comments!parent_comment_id(id, content, author_id)')
     .single()
   if (error) throw error
   return data

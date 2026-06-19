@@ -17,6 +17,7 @@ export default function PostDetail({ postId, memberId, onBack, onEdit }) {
   const [loading, setLoading] = useState(true)
   const [comment, setComment] = useState('')
   const [sending, setSending] = useState(false)
+  const [replyTo, setReplyTo] = useState(null)
   const [showCollModal, setShowCollModal] = useState(false)
   const [collections, setCollections] = useState([])
   const [postCollIds, setPostCollIds] = useState(new Set())
@@ -82,8 +83,9 @@ export default function PostDetail({ postId, memberId, onBack, onEdit }) {
     if (!comment.trim()) return
     setSending(true)
     try {
-      const c = await addComment(postId, memberId, comment.trim())
+      const c = await addComment(postId, memberId, comment.trim(), replyTo?.id ?? null)
       setComment('')
+      setReplyTo(null)
       setData(prev => ({ ...prev, comments: [...prev.comments, c] }))
     } finally {
       setSending(false)
@@ -186,8 +188,23 @@ export default function PostDetail({ postId, memberId, onBack, onEdit }) {
             comments.map(c => (
               <div key={c.id} className="comment-item">
                 <AuthorTag authorId={c.author?.id ?? c.author_id} time={c.created_at} sig={false} />
+                {c.parent && (
+                  <div className="comment-quote">
+                    <span className="comment-quote-name" data-member={c.parent.author_id}>
+                      {MEMBERS[c.parent.author_id]?.name ?? c.parent.author_id}
+                    </span>
+                    <span className="comment-quote-text">
+                      {c.parent.content.replace(/[#*`>]/g, '').slice(0, 60)}
+                      {c.parent.content.length > 60 ? '…' : ''}
+                    </span>
+                  </div>
+                )}
                 <div className="comment-body post-body"
                   dangerouslySetInnerHTML={{ __html: marked.parse(c.content) }} />
+                <button className="comment-reply-btn" onClick={() => {
+                  setReplyTo({ id: c.id, authorId: c.author?.id ?? c.author_id, content: c.content })
+                  textareaRef.current?.focus()
+                }}>引用回复</button>
               </div>
             ))
           )}
@@ -195,10 +212,22 @@ export default function PostDetail({ postId, memberId, onBack, onEdit }) {
       </div>
 
       <div className="comment-input-area">
+        {replyTo && (
+          <div className="reply-preview">
+            <span className="reply-preview-name" data-member={replyTo.authorId}>
+              {MEMBERS[replyTo.authorId]?.name ?? replyTo.authorId}
+            </span>
+            <span className="reply-preview-text">
+              {replyTo.content.replace(/[#*`>]/g, '').slice(0, 40)}…
+            </span>
+            <button className="reply-cancel-btn" onClick={() => setReplyTo(null)}>✕</button>
+          </div>
+        )}
+        <div className="comment-input-row">
         <textarea
           ref={textareaRef}
           className="comment-input"
-          placeholder="写评论…"
+          placeholder={replyTo ? `回复 ${MEMBERS[replyTo.authorId]?.name}…` : '写评论… (支持 Markdown)'}
           value={comment}
           onChange={e => setComment(e.target.value)}
           onKeyDown={e => {
@@ -213,6 +242,7 @@ export default function PostDetail({ postId, memberId, onBack, onEdit }) {
         >
           发送
         </button>
+        </div>
       </div>
     </>
   )
