@@ -8,7 +8,10 @@ export default function PostCard({ post, isUnread, onClick }) {
     <div className="post-card" data-author={post.author_id} onClick={onClick}>
       {isUnread && <span className="unread-dot" />}
       <AuthorTag authorId={post.author_id} time={post.created_at} sig={false} />
-      <div className="post-card-title">{post.title}</div>
+      <div className="post-card-title">
+        {post.mood && <span className="post-mood">{post.mood}</span>}
+        {post.title}
+      </div>
       {preview && <div className="post-card-preview">{preview}</div>}
       <div className="post-card-meta">
         <span className="cat-tag">{post.category}</span>

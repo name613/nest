@@ -199,6 +199,37 @@ body {
 .post-card[data-author="keke"]  { border-left-color: var(--keke) }
 .post-card[data-author="qiqi"]  { border-left-color: var(--qiqi) }
 
+.post-mood {
+  font-size: 15px;
+  margin-right: 6px;
+  vertical-align: middle;
+  opacity: 0.85;
+}
+
+/* ── Mood picker ── */
+.mood-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+.mood-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 4px;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 18px;
+  transition: all 0.15s;
+}
+.mood-btn:hover { border-color: var(--accent) }
+.mood-btn.selected { border-color: var(--accent); background: var(--accent-bg) }
+.mood-label { font-size: 9px; color: var(--text-2); letter-spacing: 0.5px; white-space: nowrap }
+
 .post-card-title {
   font-size: 15px;
   font-weight: 500;

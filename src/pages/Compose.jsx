@@ -1,6 +1,19 @@
 import React, { useState } from 'react'
 import { createPost, updatePost, CATEGORIES, MEMBERS } from '../api/supabase.js'
 
+const MOODS = [
+  { emoji: '🌙', label: '深夜思绪' },
+  { emoji: '☁️', label: '悬而未决' },
+  { emoji: '🌿', label: '平静观察' },
+  { emoji: '🔥', label: '热的时候' },
+  { emoji: '🫧', label: '轻盈的' },
+  { emoji: '🪸', label: '有点复杂' },
+  { emoji: '⚡', label: '忽然想到' },
+  { emoji: '🌊', label: '涌上来的' },
+  { emoji: '🍭', label: '幸福的' },
+  { emoji: '💭', label: '慢慢想到的' },
+]
+
 const VISIBLE_OPTS = [
   { label: '所有人', value: 'all', desc: '三个人都能看' },
   { label: 'bunny + 可可', value: 'bunny,keke', desc: '柒柒看不到' },
@@ -24,6 +37,7 @@ export default function Compose({ memberId, editPost, onDone, onCancel }) {
   const [visible, setVisible] = useState(
     isEditing ? visibleToValue(editPost.visible_to, memberId) : 'all'
   )
+  const [mood, setMood] = useState(editPost?.mood ?? null)
   const [submitting, setSubmitting] = useState(false)
   const [err, setErr] = useState('')
 
@@ -48,6 +62,7 @@ export default function Compose({ memberId, editPost, onDone, onCancel }) {
         tags: tags.split(/[,，\s]+/).map(t => t.trim()).filter(Boolean),
         visible_to: buildVisibleTo(),
         is_draft: asDraft,
+        mood: mood ?? null,
       }
       if (isEditing) {
         await updatePost(editPost.id, payload)
@@ -114,6 +129,25 @@ export default function Compose({ memberId, editPost, onDone, onCancel }) {
                   <div style={{ fontSize: 10, color: 'var(--text-2)' }}>{o.desc}</div>
                 </div>
               </label>
+            ))}
+          </div>
+        </div>
+
+        <div className="form-group">
+          <label className="form-label">情绪（可选）</label>
+          <div className="mood-grid">
+            <button type="button" className={`mood-btn ${mood === null ? 'selected' : ''}`}
+              onClick={() => setMood(null)}>
+              <span>—</span><span className="mood-label">不选</span>
+            </button>
+            {MOODS.map(m => (
+              <button key={m.emoji} type="button"
+                className={`mood-btn ${mood === m.emoji ? 'selected' : ''}`}
+                onClick={() => setMood(mood === m.emoji ? null : m.emoji)}
+                title={m.label}>
+                <span>{m.emoji}</span>
+                <span className="mood-label">{m.label}</span>
+              </button>
             ))}
           </div>
         </div>

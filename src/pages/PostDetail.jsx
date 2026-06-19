@@ -116,7 +116,10 @@ export default function PostDetail({ postId, memberId, onBack, onEdit }) {
 
       <div className="post-detail">
         <AuthorTag authorId={post.author_id} time={post.created_at} />
-        <h1 className="post-detail-title">{post.title}</h1>
+        <h1 className="post-detail-title">
+          {post.mood && <span className="post-mood">{post.mood}</span>}
+          {post.title}
+        </h1>
 
         {post.tags?.length > 0 && (
           <div className="post-tags">
