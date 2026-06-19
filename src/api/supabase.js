@@ -128,6 +128,24 @@ export async function getFavorites(memberId) {
   return data?.map(r => r.post) ?? []
 }
 
+export function dmChannel(a, b) {
+  return 'direct:' + [a, b].sort().join('-')
+}
+
+export async function getDMConversations(memberId) {
+  const others = Object.keys(MEMBERS).filter(id => id !== memberId)
+  return Promise.all(others.map(async otherId => {
+    const ch = dmChannel(memberId, otherId)
+    const { data } = await _client.from('forum_messages')
+      .select('content, author_id, created_at')
+      .eq('channel', ch)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    return { otherId, channel: ch, lastMessage: data }
+  }))
+}
+
 export async function getMessages(channel, limit = 80) {
   const { data, error } = await _client.from('forum_messages')
     .select('*, author:forum_members!author_id(id, name, avatar)')
@@ -145,6 +163,54 @@ export async function sendMessage(channel, authorId, content) {
     .single()
   if (error) throw error
   return data
+}
+
+export async function getCollections() {
+  const { data, error } = await _client.from('forum_collections')
+    .select('*, post_count:forum_collection_posts(count)')
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return data ?? []
+}
+
+export async function getCollectionWithPosts(collectionId, memberId) {
+  const [{ data: collection }, { data: collRows }, allVisible] = await Promise.all([
+    _client.from('forum_collections').select('*').eq('id', collectionId).single(),
+    _client.from('forum_collection_posts').select('post_id').eq('collection_id', collectionId).order('sort_order').order('created_at'),
+    _client.rpc('get_visible_posts', { p_member_id: memberId, p_post_id: null, p_include_drafts: false }),
+  ])
+  const postIds = collRows?.map(r => r.post_id) ?? []
+  const visibleMap = new Map((allVisible.data ?? []).map(p => [p.id, p]))
+  const posts = postIds.map(id => visibleMap.get(id)).filter(Boolean)
+  return { collection, posts }
+}
+
+export async function getPostCollectionIds(postId) {
+  const { data } = await _client.from('forum_collection_posts').select('collection_id').eq('post_id', postId)
+  return new Set(data?.map(r => r.collection_id) ?? [])
+}
+
+export async function createCollection(authorId, title, description = '') {
+  const { data, error } = await _client.from('forum_collections')
+    .insert({ author_id: authorId, title, description }).select().single()
+  if (error) throw error
+  return data
+}
+
+export async function addPostToCollection(collectionId, postId, addedBy) {
+  const { error } = await _client.from('forum_collection_posts')
+    .insert({ collection_id: collectionId, post_id: postId, added_by: addedBy })
+  if (error && !error.message.includes('unique')) throw error
+}
+
+export async function removePostFromCollection(collectionId, postId) {
+  const { error } = await _client.from('forum_collection_posts')
+    .delete().eq('collection_id', collectionId).eq('post_id', postId)
+  if (error) throw error
+}
+
+export function canAddToCollection(collection, memberId) {
+  return collection.author_id === memberId || (collection.contributors ?? []).includes(memberId)
 }
 
 export async function getMember(memberId) {

@@ -1,29 +1,35 @@
 import React, { useState, useEffect } from 'react'
-import { MEMBERS, getFavorites, getMember, updateMemberSignature } from '../api/supabase.js'
+import { MEMBERS, getFavorites, getMember, updateMemberSignature, getCollections, canAddToCollection } from '../api/supabase.js'
 import PostCard from '../components/PostCard.jsx'
 
-export default function Profile({ memberId, onLogout, onOpenPost }) {
+export default function Profile({ memberId, onLogout, onOpenPost, onOpenCollection }) {
+  const [tab, setTab] = useState('favorites')
   const [favs, setFavs] = useState([])
+  const [collections, setCollections] = useState([])
   const [loading, setLoading] = useState(false)
   const [sig, setSig] = useState('')
   const [editingSig, setEditingSig] = useState(false)
   const [sigInput, setSigInput] = useState('')
   const [savingSig, setSavingSig] = useState(false)
+  const [showCreateColl, setShowCreateColl] = useState(false)
+  const [newCollTitle, setNewCollTitle] = useState('')
+  const [newCollDesc, setNewCollDesc] = useState('')
+  const [creatingColl, setCreatingColl] = useState(false)
   const m = MEMBERS[memberId] ?? { id: memberId, name: memberId, avatar: '👤' }
 
   useEffect(() => {
-    loadFavs()
     getMember(memberId).then(d => setSig(d.signature ?? '')).catch(() => {})
   }, [memberId])
 
-  async function loadFavs() {
-    setLoading(true)
-    try {
-      setFavs(await getFavorites(memberId))
-    } finally {
-      setLoading(false)
+  useEffect(() => {
+    if (tab === 'favorites') {
+      setLoading(true)
+      getFavorites(memberId).then(setFavs).finally(() => setLoading(false))
+    } else {
+      setLoading(true)
+      getCollections().then(setCollections).finally(() => setLoading(false))
     }
-  }
+  }, [tab, memberId])
 
   async function saveSig() {
     setSavingSig(true)
@@ -33,6 +39,21 @@ export default function Profile({ memberId, onLogout, onOpenPost }) {
       setEditingSig(false)
     } finally {
       setSavingSig(false)
+    }
+  }
+
+  async function handleCreateCollection() {
+    if (!newCollTitle.trim()) return
+    setCreatingColl(true)
+    try {
+      const { createCollection } = await import('../api/supabase.js')
+      await createCollection(memberId, newCollTitle.trim(), newCollDesc.trim())
+      setNewCollTitle('')
+      setNewCollDesc('')
+      setShowCreateColl(false)
+      getCollections().then(setCollections)
+    } finally {
+      setCreatingColl(false)
     }
   }
 
@@ -46,17 +67,10 @@ export default function Profile({ memberId, onLogout, onOpenPost }) {
         <div className="profile-card">
           <div className="profile-av">{m.avatar}</div>
           <div className="profile-name" data-member={m.id}>{m.name}</div>
-
           {editingSig ? (
             <div className="sig-edit-row">
-              <input
-                className="sig-input"
-                value={sigInput}
-                onChange={e => setSigInput(e.target.value)}
-                placeholder="写个签名…"
-                maxLength={40}
-                autoFocus
-              />
+              <input className="sig-input" value={sigInput} onChange={e => setSigInput(e.target.value)}
+                placeholder="写个签名…" maxLength={40} autoFocus />
               <div className="sig-edit-btns">
                 <button className="sig-btn-save" onClick={saveSig} disabled={savingSig}>
                   {savingSig ? '…' : '保存'}
@@ -67,29 +81,58 @@ export default function Profile({ memberId, onLogout, onOpenPost }) {
           ) : (
             <div className="sig-display-row">
               <div className="profile-sig">{sig || '还没有签名'}</div>
-              <button className="sig-edit-trigger" onClick={() => { setSigInput(sig); setEditingSig(true) }}>
-                编辑
+              <button className="sig-edit-trigger" onClick={() => { setSigInput(sig); setEditingSig(true) }}>编辑</button>
+            </div>
+          )}
+        </div>
+
+        <div className="profile-tabs">
+          <button className={`profile-tab ${tab === 'favorites' ? 'active' : ''}`} onClick={() => setTab('favorites')}>收藏</button>
+          <button className={`profile-tab ${tab === 'collections' ? 'active' : ''}`} onClick={() => setTab('collections')}>合集</button>
+        </div>
+
+        {tab === 'favorites' && (
+          loading ? <div className="loading-state">加载中…</div>
+          : favs.length === 0 ? <div className="empty-state" style={{ padding: '24px 0' }}><div>还没有收藏</div></div>
+          : favs.map(p => <PostCard key={p.id} post={p} onClick={() => onOpenPost(p.id)} />)
+        )}
+
+        {tab === 'collections' && (
+          <>
+            <div style={{ marginBottom: 12 }}>
+              <button className="btn-outline" style={{ width: '100%' }} onClick={() => setShowCreateColl(v => !v)}>
+                {showCreateColl ? '取消' : '＋ 创建合集'}
               </button>
             </div>
-          )}
-        </div>
 
-        <div style={{ marginBottom: 16 }}>
-          <p className="profile-section-title">收藏</p>
-          {loading ? (
-            <div className="loading-state">加载中…</div>
-          ) : favs.length === 0 ? (
-            <div className="empty-state" style={{ padding: '24px 0' }}>
-              <div>还没有收藏</div>
-            </div>
-          ) : (
-            favs.map(p => (
-              <PostCard key={p.id} post={p} onClick={() => onOpenPost(p.id)} />
-            ))
-          )}
-        </div>
+            {showCreateColl && (
+              <div className="create-coll-form">
+                <input className="form-input" placeholder="合集名称" value={newCollTitle}
+                  onChange={e => setNewCollTitle(e.target.value)} style={{ marginBottom: 8 }} />
+                <input className="form-input" placeholder="简介（可选）" value={newCollDesc}
+                  onChange={e => setNewCollDesc(e.target.value)} style={{ marginBottom: 10 }} />
+                <button className="btn-submit" onClick={handleCreateCollection} disabled={!newCollTitle.trim() || creatingColl}>
+                  {creatingColl ? '创建中…' : '创建'}
+                </button>
+              </div>
+            )}
 
-        <button className="logout-btn" onClick={onLogout}>退出登录</button>
+            {loading ? <div className="loading-state">加载中…</div>
+            : collections.length === 0 ? <div className="empty-state" style={{ padding: '24px 0' }}><div>还没有合集</div></div>
+            : collections.map(c => (
+              <button key={c.id} className="collection-card" onClick={() => onOpenCollection(c.id)}>
+                <div className="collection-card-title">{c.title}</div>
+                {c.description && <div className="collection-card-desc">{c.description}</div>}
+                <div className="collection-card-meta">
+                  <span data-member={c.author_id}>{MEMBERS[c.author_id]?.avatar} {MEMBERS[c.author_id]?.name}</span>
+                  <span>{c.post_count?.[0]?.count ?? 0} 篇</span>
+                </div>
+              </button>
+            ))}
+          </>
+        )}
+
+        <button className="logout-btn" style={{ marginTop: 24 }} onClick={onLogout}>退出登录</button>
       </div>
     </>
   )

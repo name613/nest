@@ -7,6 +7,7 @@ import Compose from './pages/Compose.jsx'
 import Notifications from './pages/Notifications.jsx'
 import Profile from './pages/Profile.jsx'
 import ChatRoom from './pages/ChatRoom.jsx'
+import CollectionDetail from './pages/CollectionDetail.jsx'
 import NavBar from './components/NavBar.jsx'
 
 export default function App() {
@@ -14,6 +15,7 @@ export default function App() {
   const [page, setPage] = useState('feed')
   const [postId, setPostId] = useState(null)
   const [editPost, setEditPost] = useState(null)
+  const [collectionId, setCollectionId] = useState(null)
   const [unread, setUnread] = useState(0)
 
   // Restore session from localStorage
@@ -79,7 +81,7 @@ export default function App() {
   if (!session) return <Login onLogin={handleLogin} />
 
   const { memberId } = session
-  const showNav = page !== 'post' && page !== 'compose'
+  const showNav = page !== 'post' && page !== 'compose' && page !== 'collection'
 
   return (
     <div className="app">
@@ -118,6 +120,15 @@ export default function App() {
           <Profile
             memberId={memberId}
             onLogout={handleLogout}
+            onOpenPost={openPost}
+            onOpenCollection={id => { setCollectionId(id); setPage('collection') }}
+          />
+        )}
+        {page === 'collection' && collectionId && (
+          <CollectionDetail
+            collectionId={collectionId}
+            memberId={memberId}
+            onBack={() => { setPage('profile'); setCollectionId(null) }}
             onOpenPost={openPost}
           />
         )}

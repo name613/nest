@@ -745,6 +745,171 @@ body {
 }
 .fab:hover { transform: scale(1.06); box-shadow: 0 6px 18px rgba(154, 107, 60, 0.5) }
 
+/* ── Profile tabs ── */
+.profile-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+.profile-tab {
+  flex: 1;
+  padding: 10px 0;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text-2);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+}
+.profile-tab.active { color: var(--accent); border-bottom-color: var(--accent) }
+
+/* ── Collections ── */
+.collection-card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: box-shadow 0.15s;
+  font-family: inherit;
+}
+.collection-card:hover { box-shadow: 0 2px 10px rgba(0,0,0,0.07) }
+.collection-card-title { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 4px }
+.collection-card-desc { font-size: 12px; color: var(--text-2); margin-bottom: 8px }
+.collection-card-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-2);
+}
+.collection-card-meta [data-member="bunny"] { color: var(--bunny) }
+.collection-card-meta [data-member="keke"]  { color: var(--keke) }
+.collection-card-meta [data-member="qiqi"]  { color: var(--qiqi) }
+
+.create-coll-form { margin-bottom: 16px }
+
+.collection-detail-page { padding: 16px }
+.collection-header-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px 16px;
+  margin-bottom: 16px;
+}
+.collection-title { font-size: 18px; font-weight: 500; margin-bottom: 8px }
+.collection-desc { font-size: 13px; color: var(--text-2); margin-bottom: 12px; line-height: 1.6 }
+.collection-meta-row { font-size: 11px; color: var(--text-2); display: flex; align-items: center; gap: 8px; flex-wrap: wrap }
+.collection-meta-author[data-member="bunny"] { color: var(--bunny) }
+.collection-meta-author[data-member="keke"]  { color: var(--keke) }
+.collection-meta-author[data-member="qiqi"]  { color: var(--qiqi) }
+.collection-meta-count { margin-left: auto }
+
+/* ── Collection modal ── */
+.coll-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+}
+.coll-modal {
+  background: var(--surface);
+  border-radius: 14px 14px 0 0;
+  padding: 20px 16px 32px;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+}
+.coll-modal-title {
+  font-size: 13px;
+  letter-spacing: 2px;
+  color: var(--text-2);
+  margin-bottom: 16px;
+  text-transform: uppercase;
+}
+.coll-modal-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 4px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 14px;
+}
+.coll-modal-item input[type="checkbox"] { accent-color: var(--accent); width: 16px; height: 16px }
+.coll-modal-author { margin-left: auto; font-size: 16px }
+.coll-modal-author[data-member="bunny"] { color: var(--bunny) }
+.coll-modal-author[data-member="keke"]  { color: var(--keke) }
+.coll-modal-author[data-member="qiqi"]  { color: var(--qiqi) }
+.coll-modal-create { display: flex; gap: 8px; margin-top: 16px }
+.coll-create-input {
+  flex: 1;
+  padding: 9px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text);
+  outline: none;
+}
+.coll-create-input:focus { border-color: var(--accent) }
+.coll-create-btn {
+  padding: 9px 14px;
+  background: var(--accent);
+  color: #fdfaf6;
+  border: none;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.coll-create-btn:disabled { opacity: 0.4 }
+
+/* ── DM list ── */
+.dm-list { padding: 8px 0 }
+.dm-list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: background 0.1s;
+}
+.dm-list-item:hover { background: var(--surface-2) }
+.dm-av { font-size: 28px; flex-shrink: 0 }
+.dm-info { flex: 1; min-width: 0 }
+.dm-name { font-size: 14px; font-weight: 500; margin-bottom: 3px }
+.dm-name[data-member="bunny"] { color: var(--bunny) }
+.dm-name[data-member="keke"]  { color: var(--keke) }
+.dm-name[data-member="qiqi"]  { color: var(--qiqi) }
+.dm-preview { font-size: 12px; color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.dm-time { font-size: 11px; color: var(--text-2); flex-shrink: 0 }
+.dm-back-btn {
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text-2);
+  cursor: pointer;
+  padding: 0;
+}
+
 /* ── Chat room ── */
 .chat-page {
   display: flex;
@@ -760,11 +925,25 @@ body {
   background: color-mix(in srgb, var(--bg) 92%, transparent);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--border);
-  padding: 12px 16px;
+  padding: 0 16px;
   display: flex;
-  align-items: baseline;
-  gap: 10px;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
 }
+.chat-tabs { display: flex; gap: 0 }
+.chat-tab {
+  padding: 14px 16px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.chat-tab.active { color: var(--accent); border-bottom-color: var(--accent) }
 .chat-title { font-size: 16px; font-weight: 400; letter-spacing: 2px }
 .chat-subtitle { font-size: 11px; color: var(--text-2) }
 

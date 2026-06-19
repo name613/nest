@@ -2,7 +2,9 @@ import React, { useState, useEffect, useRef } from 'react'
 import { marked } from 'marked'
 import {
   getPostWithDetails, addComment, toggleReaction,
-  toggleFavorite, MEMBERS
+  toggleFavorite, getCollections, getPostCollectionIds,
+  addPostToCollection, removePostFromCollection, createCollection,
+  canAddToCollection, MEMBERS
 } from '../api/supabase.js'
 import AuthorTag from '../components/AuthorTag.jsx'
 
@@ -15,6 +17,11 @@ export default function PostDetail({ postId, memberId, onBack, onEdit }) {
   const [loading, setLoading] = useState(true)
   const [comment, setComment] = useState('')
   const [sending, setSending] = useState(false)
+  const [showCollModal, setShowCollModal] = useState(false)
+  const [collections, setCollections] = useState([])
+  const [postCollIds, setPostCollIds] = useState(new Set())
+  const [newCollTitle, setNewCollTitle] = useState('')
+  const [creatingColl, setCreatingColl] = useState(false)
   const textareaRef = useRef(null)
 
   useEffect(() => { load() }, [postId])
@@ -37,6 +44,37 @@ export default function PostDetail({ postId, memberId, onBack, onEdit }) {
   async function handleFavorite() {
     await toggleFavorite(postId, memberId)
     load()
+  }
+
+  async function openCollModal() {
+    const [colls, ids] = await Promise.all([getCollections(), getPostCollectionIds(postId)])
+    setCollections(colls)
+    setPostCollIds(ids)
+    setShowCollModal(true)
+  }
+
+  async function toggleCollection(collId) {
+    if (postCollIds.has(collId)) {
+      await removePostFromCollection(collId, postId)
+      setPostCollIds(prev => { const s = new Set(prev); s.delete(collId); return s })
+    } else {
+      await addPostToCollection(collId, postId, memberId)
+      setPostCollIds(prev => new Set([...prev, collId]))
+    }
+  }
+
+  async function handleCreateAndAdd() {
+    if (!newCollTitle.trim()) return
+    setCreatingColl(true)
+    try {
+      const coll = await createCollection(memberId, newCollTitle.trim())
+      await addPostToCollection(coll.id, postId, memberId)
+      setCollections(prev => [coll, ...prev])
+      setPostCollIds(prev => new Set([...prev, coll.id]))
+      setNewCollTitle('')
+    } finally {
+      setCreatingColl(false)
+    }
   }
 
   async function handleComment() {
@@ -103,10 +141,41 @@ export default function PostDetail({ postId, memberId, onBack, onEdit }) {
             className={`action-btn fav-btn ${isFavorited ? 'active' : ''}`}
             onClick={handleFavorite}
           >
-            <span className="emoji">{isFavorited ? '🔖' : '🔖'}</span>
+            <span className="emoji">🔖</span>
             <span>{isFavorited ? '已收藏' : '收藏'}</span>
           </button>
+          <button className="action-btn" onClick={openCollModal}>
+            <span className="emoji">📚</span>
+            <span>合集</span>
+          </button>
         </div>
+
+        {showCollModal && (
+          <div className="coll-modal-overlay" onClick={() => setShowCollModal(false)}>
+            <div className="coll-modal" onClick={e => e.stopPropagation()}>
+              <div className="coll-modal-title">加入合集</div>
+              {collections.filter(c => canAddToCollection(c, memberId)).map(c => (
+                <label key={c.id} className="coll-modal-item">
+                  <input type="checkbox" checked={postCollIds.has(c.id)}
+                    onChange={() => toggleCollection(c.id)} />
+                  <span>{c.title}</span>
+                  <span className="coll-modal-author" data-member={c.author_id}>
+                    {MEMBERS[c.author_id]?.avatar}
+                  </span>
+                </label>
+              ))}
+              <div className="coll-modal-create">
+                <input className="coll-create-input" placeholder="创建新合集…"
+                  value={newCollTitle} onChange={e => setNewCollTitle(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleCreateAndAdd()} />
+                <button className="coll-create-btn" onClick={handleCreateAndAdd}
+                  disabled={!newCollTitle.trim() || creatingColl}>
+                  {creatingColl ? '…' : '创建并加入'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="comments-section">
           <h3>评论 {comments.length > 0 ? `· ${comments.length}` : ''}</h3>
