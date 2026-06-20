@@ -1253,3 +1253,45 @@ body {
 ::-webkit-scrollbar { width: 4px }
 ::-webkit-scrollbar-track { background: transparent }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px }
+
+/* ── 漂流瓶 ── */
+.bottle-write { display: flex; flex-direction: column }
+.bottle-options { display: flex; gap: 16px; margin-top: 10px }
+.bottle-opt-label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-2); cursor: pointer }
+.bottle-list { display: flex; flex-direction: column; gap: 12px }
+.bottle-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  cursor: pointer;
+}
+.bottle-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px }
+.bottle-from { font-size: 12px; font-weight: 600; color: var(--accent) }
+.bottle-time { font-size: 11px; color: var(--text-2) }
+.bottle-content { font-size: 14px; line-height: 1.7; white-space: pre-wrap; color: var(--text) }
+.bottle-drift-time { font-size: 11px; color: var(--text-2); margin-top: 6px }
+.bottle-actions { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 10px }
+.bottle-tag {
+  display: inline-block;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  color: var(--text-2);
+}
+.tag-pending { background: #fff8e1; color: #b8860b }
+.tag-drifting { background: #e3f0fb; color: #3a7fc1 }
+.tag-picked { background: #e8f5e9; color: #388e3c }
+.tag-public { background: #f3e5f5; color: #7b1fa2 }
+.bottle-picked-note { margin-top: 8px }
+.bottle-reply {
+  margin-top: 10px;
+  padding: 8px 10px;
+  background: var(--surface-2);
+  border-radius: 8px;
+  font-size: 13px;
+}
+.bottle-reply-author { font-weight: 600; margin-right: 6px; color: var(--accent) }
+.bottle-reply-content { color: var(--text) }
+.btn-sm { font-size: 12px; padding: 4px 10px }

@@ -8,6 +8,7 @@ import Notifications from './pages/Notifications.jsx'
 import Profile from './pages/Profile.jsx'
 import ChatRoom from './pages/ChatRoom.jsx'
 import CollectionDetail from './pages/CollectionDetail.jsx'
+import Bottles from './pages/Bottles.jsx'
 import NavBar from './components/NavBar.jsx'
 
 export default function App() {
@@ -110,6 +111,7 @@ export default function App() {
           />
         )}
         {page === 'chat' && <ChatRoom memberId={memberId} />}
+        {page === 'bottles' && <Bottles memberId={memberId} />}
         {page === 'notifications' && (
           <Notifications
             memberId={memberId}

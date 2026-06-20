@@ -263,3 +263,86 @@ export async function updateMemberSignature(memberId, signature) {
   const { error } = await _client.from('forum_members').update({ signature }).eq('id', memberId)
   if (error) throw error
 }
+
+// ── 漂流瓶 ───────────────────────────────────────────────
+
+export async function writeBottle(authorId, content, isAnonymous = false, driftAt = null) {
+  const { data, error } = await _client.from('forum_bottles')
+    .insert({
+      author_id: authorId,
+      content,
+      is_anonymous: isAnonymous,
+      drift_at: driftAt ?? new Date().toISOString(),
+    })
+    .select().single()
+  if (error) throw error
+  return data
+}
+
+export async function getBottlePool(memberId) {
+  await _client.rpc('assign_pending_bottles')
+  const { data, error } = await _client.from('forum_bottles')
+    .select('id, content, is_anonymous, author_id, drift_at, created_at')
+    .eq('recipient_id', memberId)
+    .eq('status', 'drifting')
+    .order('drift_at')
+  if (error) throw error
+  return data ?? []
+}
+
+export async function pickBottle(bottleId, memberId) {
+  const { data, error } = await _client.from('forum_bottles')
+    .update({ status: 'picked', picked_at: new Date().toISOString() })
+    .eq('id', bottleId)
+    .eq('recipient_id', memberId)
+    .select().single()
+  if (error) throw error
+  return data
+}
+
+export async function replyToBottle(bottleId, memberId, content) {
+  const { data, error } = await _client.from('forum_bottle_replies')
+    .insert({ bottle_id: bottleId, author_id: memberId, content })
+    .select().single()
+  if (error) throw error
+  return data
+}
+
+export async function getBottle(bottleId) {
+  const [{ data: bottle }, { data: replies }] = await Promise.all([
+    _client.from('forum_bottles').select('*').eq('id', bottleId).single(),
+    _client.from('forum_bottle_replies').select('*').eq('bottle_id', bottleId).order('created_at'),
+  ])
+  return { bottle, replies: replies ?? [] }
+}
+
+export async function getMyWrittenBottles(memberId) {
+  const { data, error } = await _client.from('forum_bottles')
+    .select('id, content, is_anonymous, recipient_id, status, drift_at, picked_at, public_requested, public_approved, created_at')
+    .eq('author_id', memberId)
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return data ?? []
+}
+
+export async function getMyPickedBottles(memberId) {
+  const { data, error } = await _client.from('forum_bottles')
+    .select('id, content, is_anonymous, author_id, drift_at, picked_at, public_requested, public_approved, created_at, replies:forum_bottle_replies(*)')
+    .eq('recipient_id', memberId)
+    .eq('status', 'picked')
+    .order('picked_at', { ascending: false })
+  if (error) throw error
+  return data ?? []
+}
+
+export async function requestBottlePublic(bottleId) {
+  const { error } = await _client.from('forum_bottles')
+    .update({ public_requested: true }).eq('id', bottleId)
+  if (error) throw error
+}
+
+export async function approveBottlePublic(bottleId) {
+  const { error } = await _client.from('forum_bottles')
+    .update({ public_approved: true }).eq('id', bottleId)
+  if (error) throw error
+}
