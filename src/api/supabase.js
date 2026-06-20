@@ -73,6 +73,18 @@ export async function addComment(postId, authorId, content, parentCommentId = nu
   return data
 }
 
+export async function updateComment(commentId, content) {
+  const { data, error } = await _client.from('forum_comments')
+    .update({ content }).eq('id', commentId).select().single()
+  if (error) throw error
+  return data
+}
+
+export async function deleteComment(commentId) {
+  const { error } = await _client.from('forum_comments').delete().eq('id', commentId)
+  if (error) throw error
+}
+
 export async function toggleReaction(postId, authorId, emoji) {
   const { data } = await _client.from('forum_reactions')
     .select('id').eq('post_id', postId).eq('author_id', authorId).eq('emoji', emoji).maybeSingle()
@@ -154,6 +166,14 @@ export async function getMessages(channel, limit = 80) {
     .limit(limit)
   if (error) throw error
   return data ?? []
+}
+
+export async function recallMessage(messageId, authorId) {
+  const { error } = await _client.from('forum_messages')
+    .update({ is_recalled: true })
+    .eq('id', messageId)
+    .eq('author_id', authorId)
+  if (error) throw error
 }
 
 export async function sendMessage(channel, authorId, content) {

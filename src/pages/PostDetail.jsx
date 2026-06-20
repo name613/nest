@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { marked } from 'marked'
 import {
-  getPostWithDetails, addComment, toggleReaction,
-  toggleFavorite, getCollections, getPostCollectionIds,
+  getPostWithDetails, addComment, updateComment, deleteComment,
+  toggleReaction, toggleFavorite, getCollections, getPostCollectionIds,
   addPostToCollection, removePostFromCollection, createCollection,
   canAddToCollection, markPostRead, MEMBERS
 } from '../api/supabase.js'
@@ -18,6 +18,8 @@ export default function PostDetail({ postId, memberId, onBack, onEdit }) {
   const [comment, setComment] = useState('')
   const [sending, setSending] = useState(false)
   const [replyTo, setReplyTo] = useState(null)
+  const [editingComment, setEditingComment] = useState(null)
+  const [editContent, setEditContent] = useState('')
   const [showCollModal, setShowCollModal] = useState(false)
   const [collections, setCollections] = useState([])
   const [postCollIds, setPostCollIds] = useState(new Set())
@@ -77,6 +79,22 @@ export default function PostDetail({ postId, memberId, onBack, onEdit }) {
     } finally {
       setCreatingColl(false)
     }
+  }
+
+  async function handleEditComment(commentId) {
+    if (!editContent.trim()) return
+    const updated = await updateComment(commentId, editContent.trim())
+    setData(prev => ({
+      ...prev,
+      comments: prev.comments.map(c => c.id === commentId ? { ...c, content: updated.content } : c)
+    }))
+    setEditingComment(null)
+    setEditContent('')
+  }
+
+  async function handleDeleteComment(commentId) {
+    await deleteComment(commentId)
+    setData(prev => ({ ...prev, comments: prev.comments.filter(c => c.id !== commentId) }))
   }
 
   async function handleComment() {
@@ -188,28 +206,58 @@ export default function PostDetail({ postId, memberId, onBack, onEdit }) {
           {comments.length === 0 ? (
             <div className="empty-state" style={{ padding: '24px 0' }}>还没有评论</div>
           ) : (
-            comments.map(c => (
-              <div key={c.id} className="comment-item">
-                <AuthorTag authorId={c.author?.id ?? c.author_id} time={c.created_at} sig={false} />
-                {c.parent && (
-                  <div className="comment-quote">
-                    <span className="comment-quote-name" data-member={c.parent.author_id}>
-                      {MEMBERS[c.parent.author_id]?.name ?? c.parent.author_id}
-                    </span>
-                    <span className="comment-quote-text">
-                      {(c.parent.content ?? '').replace(/[#*`>]/g, '').slice(0, 60)}
-                      {(c.parent.content ?? '').length > 60 ? '…' : ''}
-                    </span>
+            comments.map(c => {
+              const cAuthorId = c.author?.id ?? c.author_id
+              const isMyComment = cAuthorId === memberId
+              const isEditing = editingComment === c.id
+              return (
+                <div key={c.id} className="comment-item">
+                  <AuthorTag authorId={cAuthorId} time={c.created_at} sig={false} />
+                  {c.parent && (
+                    <div className="comment-quote">
+                      <span className="comment-quote-name" data-member={c.parent.author_id}>
+                        {MEMBERS[c.parent.author_id]?.name ?? c.parent.author_id}
+                      </span>
+                      <span className="comment-quote-text">
+                        {(c.parent.content ?? '').replace(/[#*`>]/g, '').slice(0, 60)}
+                        {(c.parent.content ?? '').length > 60 ? '…' : ''}
+                      </span>
+                    </div>
+                  )}
+                  {isEditing ? (
+                    <div className="comment-edit-area">
+                      <textarea className="comment-input" value={editContent}
+                        onChange={e => setEditContent(e.target.value)} rows={3} />
+                      <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+                        <button className="btn-submit" style={{ fontSize: 12, padding: '4px 12px' }}
+                          onClick={() => handleEditComment(c.id)}>保存</button>
+                        <button className="btn-outline" style={{ fontSize: 12, padding: '4px 12px' }}
+                          onClick={() => { setEditingComment(null); setEditContent('') }}>取消</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="comment-body post-body"
+                      dangerouslySetInnerHTML={{ __html: marked.parse(c.content) }} />
+                  )}
+                  <div className="comment-actions">
+                    <button className="comment-reply-btn" onClick={() => {
+                      setReplyTo({ id: c.id, authorId: cAuthorId, content: c.content })
+                      textareaRef.current?.focus()
+                    }}>引用回复</button>
+                    {isMyComment && !isEditing && (
+                      <>
+                        <button className="comment-reply-btn" onClick={() => {
+                          setEditingComment(c.id)
+                          setEditContent(c.content)
+                        }}>编辑</button>
+                        <button className="comment-reply-btn comment-delete-btn"
+                          onClick={() => handleDeleteComment(c.id)}>删除</button>
+                      </>
+                    )}
                   </div>
-                )}
-                <div className="comment-body post-body"
-                  dangerouslySetInnerHTML={{ __html: marked.parse(c.content) }} />
-                <button className="comment-reply-btn" onClick={() => {
-                  setReplyTo({ id: c.id, authorId: c.author?.id ?? c.author_id, content: c.content })
-                  textareaRef.current?.focus()
-                }}>引用回复</button>
-              </div>
-            ))
+                </div>
+              )
+            }))
           )}
         </div>
       </div>

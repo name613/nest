@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { getMessages, sendMessage, getDMConversations, dmChannel, MEMBERS } from '../api/supabase.js'
+import { getMessages, sendMessage, recallMessage, getDMConversations, dmChannel, MEMBERS } from '../api/supabase.js'
 
 function timeStr(ts) {
   const d = new Date(ts)
@@ -49,6 +49,13 @@ function MessageList({ channel, memberId }) {
     }
   }
 
+  async function handleRecall(msgId) {
+    try {
+      await recallMessage(msgId, memberId)
+      setMessages(prev => prev.map(m => m.id === msgId ? { ...m, is_recalled: true } : m))
+    } catch {}
+  }
+
   let lastDate = ''
 
   return (
@@ -72,10 +79,19 @@ function MessageList({ channel, memberId }) {
                 {!isMe && <div className="chat-av">{m.avatar}</div>}
                 <div className="chat-bubble-wrap">
                   {!isMe && <div className="chat-name" data-member={m.id}>{m.name}</div>}
-                  <div className={`chat-bubble ${isMe ? 'chat-bubble-me' : 'chat-bubble-other'}`} data-member={m.id}>
-                    {msg.content}
+                  {msg.is_recalled ? (
+                    <div className="chat-bubble chat-bubble-recalled">已撤回</div>
+                  ) : (
+                    <div className={`chat-bubble ${isMe ? 'chat-bubble-me' : 'chat-bubble-other'}`} data-member={m.id}>
+                      {msg.content}
+                    </div>
+                  )}
+                  <div className={`chat-time ${isMe ? 'chat-time-me' : ''}`}>
+                    {timeStr(msg.created_at)}
+                    {isMe && !msg.is_recalled && (
+                      <button className="recall-btn" onClick={() => handleRecall(msg.id)}>撤回</button>
+                    )}
                   </div>
-                  <div className={`chat-time ${isMe ? 'chat-time-me' : ''}`}>{timeStr(msg.created_at)}</div>
                 </div>
                 {isMe && <div className="chat-av">{m.avatar}</div>}
               </div>
@@ -121,7 +137,9 @@ function DMList({ memberId, onSelect }) {
             <div className="dm-info">
               <div className="dm-name" data-member={m.id}>{m.name}</div>
               <div className="dm-preview">
-                {lastMessage ? lastMessage.content.slice(0, 40) : '还没有消息'}
+                {lastMessage
+                  ? (lastMessage.is_recalled ? '已撤回' : lastMessage.content.slice(0, 40))
+                  : '还没有消息'}
               </div>
             </div>
             {lastMessage && (

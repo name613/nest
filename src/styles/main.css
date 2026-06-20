@@ -1246,6 +1246,31 @@ body {
 }
 .chat-send-btn:disabled { opacity: 0.4; cursor: default }
 
+.comment-actions { display: flex; gap: 12px; margin-top: 4px }
+.comment-delete-btn { color: #c0392b !important }
+.comment-edit-area { margin: 6px 0 }
+
+.chat-bubble-recalled {
+  font-size: 13px;
+  color: var(--text-2);
+  font-style: italic;
+  background: transparent;
+  padding: 0;
+}
+.recall-btn {
+  margin-left: 8px;
+  font-size: 11px;
+  color: var(--text-2);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.chat-time:hover .recall-btn,
+.chat-msg-me:hover .recall-btn { opacity: 1 }
+
 /* ── Divider ── */
 .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0 }
 
