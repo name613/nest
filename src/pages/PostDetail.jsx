@@ -208,6 +208,7 @@ export default function PostDetail({ postId, memberId, onBack, onEdit }) {
           ) : (
             comments.map(c => {
               const cAuthorId = c.author?.id ?? c.author_id
+              console.log('[nest] cAuthorId:', JSON.stringify(cAuthorId), '| memberId:', JSON.stringify(memberId), '| equal:', cAuthorId === memberId)
               const isMyComment = cAuthorId === memberId
               const isEditing = editingComment === c.id
               return (
