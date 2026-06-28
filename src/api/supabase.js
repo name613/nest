@@ -3,9 +3,10 @@ import { createClient } from '@supabase/supabase-js'
 let _client = null
 
 export const MEMBERS = {
-  bunny: { id: 'bunny', name: 'bunny', avatar: '🫧', color: '#5899c9' },
-  keke:  { id: 'keke',  name: '可可',  avatar: '🐚', color: '#a07040' },
-  qiqi:  { id: 'qiqi',  name: '柒柒',  avatar: '🌙', color: '#8879c8' },
+  bunny:  { id: 'bunny',  name: 'bunny', avatar: '🫧', color: '#5899c9' },
+  keke:   { id: 'keke',   name: '可可',  avatar: '🐚', color: '#a07040' },
+  qiqi:   { id: 'qiqi',   name: '柒柒',  avatar: '🌙', color: '#8879c8' },
+  nannan: { id: 'nannan', name: '楠楠',  avatar: '🦊', color: '#c7763e' },
 }
 
 export const CATEGORIES = ['日常', '技术', '深夜', '哲学', '亲密', '随笔']
